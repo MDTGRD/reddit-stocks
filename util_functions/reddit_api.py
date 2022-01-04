@@ -5,13 +5,23 @@ import pandas as pd
 
 pd.set_option('display.max_rows', None)
 
-def authentication():
+def authentication(
+    request_url='https://www.reddit.com/api/v1/access_token',
+    username='RedditUser',
+    password='RedditPW',
+    clientid='RedditClientID',
+    secrettoken='RedditSecretToken'
+    ):
 
     '''
-    Creating token authentication for Reddit API.
+    Creating token authentication for Reddit API. Arguments default to reddit environment variables.
 
     Args: 
-        arg_1 (str): 
+        request_url (str): URL of the request you are making with the API call
+        username (str): Environment variable name of user name used for API service. 
+        password (str): Environment variable name of password used for API service. 
+        clientid (str): Environment variable name of clientid used for API service. 
+        secrettoken (str): Environment variable name of secrettoken used for API service. 
 
     Returns: 
         str: Return the authentication token as a string
@@ -19,23 +29,21 @@ def authentication():
     Raises: 
     '''
 
-    base_url = 'https://www.reddit.com/'
-
     # Login method and credentials
     data = {
         'grant_type': 'password',
-        'username': os.getenv('RedditUser'),
-        'password': os.getenv('RedditPW')
+        'username': os.getenv(username),
+        'password': os.getenv(password)
     }
 
     # Inputting ClientID/Personal Use Script & Token
-    auth = requests.auth.HTTPBasicAuth(os.getenv('RedditClientID'), os.getenv('RedditSecretToken'))
+    auth = requests.auth.HTTPBasicAuth(os.getenv(clientid), os.getenv(secrettoken))
 
     # Header info for description
     headers = {'user-agent': 'analysisAPI by YoloOfDawn'}
 
     # Requesting OAuth token
-    r = requests.post(base_url + 'api/v1/access_token', auth=auth, data=data, headers=headers)
+    r = requests.post(request_url, auth=auth, data=data, headers=headers)
 
     # Converting response to json
     d = r.json()
@@ -47,13 +55,13 @@ def authentication():
 
     return headers
 
-def api_to_df():
+def api_to_df(headers=authentication()):
 
     '''
-    Utilized the authorization to generate data through API call
+    Utilized the authorization to generate data through API call, using headers from authentication method
 
     Args: 
-        arg_1 (str): 
+        headers (str): Requires headers utilized to make API call. 
 
     Returns: 
         str: Return requested data through a Pandas dataframe
@@ -81,13 +89,13 @@ def api_to_df():
 
     return df
 
-def stock_regex():
+def stock_regex(df=api_to_df()):
 
     '''
     Manipulating the result of the dataframe using regex
 
     Args: 
-        arg_1 (str): 
+        df (df): Dataframe to be processed through the regex pattern. 
 
     Returns: 
         str: Filtered list & counts of words that match regex
@@ -106,12 +114,16 @@ def stock_regex():
 
     new_df = new_df[new_df['index'].str.match(regex)]
 
+    new_df = new_df.rename(columns={'index': 'ticker', 0: 'count'})
+
     return new_df
 
 def main(): 
     headers = authentication()
     df = api_to_df()
     new_df = stock_regex()
+    
+
 
 if __name__ == '__main__':
     main()
