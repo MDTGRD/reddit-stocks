@@ -1,5 +1,7 @@
 import requests
 import os
+import json
+import pandas as pd
 
 base_url = 'https://www.reddit.com/'
 
@@ -29,7 +31,28 @@ headers = {**headers, **{'Authorization': f"{token}"}}
 
 res = requests.get('https://oauth.reddit.com/r/stocks/hot', headers=headers)
 
-res.json(())
+df = pd.DataFrame()
 
 for post in res.json()['data']['children']:
-    print(post['data']['title'])
+    df = df.append({
+        'subreddit': post['data']['subreddit'],
+        'title': post['data']['title'],
+        'selftext': post['data']['selftext'],
+        'upvote_ratio': post['data']['upvote_ratio'],
+        'ups': post['data']['ups'],
+        'downs': post['data']['downs'],
+        'score': post['data']['score']
+    }, ignore_index=True)
+
+titles = df['title']
+
+# Cleaning punctuation and separating into words
+for char in '-.,\n':
+    titles=titles.replace(char, ' ')
+
+print(titles)
+
+#word_list = titles.split()
+#print(word_list)
+
+# d = {}
